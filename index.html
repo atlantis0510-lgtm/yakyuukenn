@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>野球拳じゃんけんゲーム</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* PC時の縦書きテキスト設定 */
+        .writing-vertical {
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+        }
+
+        /* 画像フォールバック用のシンプルなプレースホルダー枠 */
+        .img-placeholder {
+            background-color: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9ca3af;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col justify-between font-sans">
+
+    <!-- ヘッダー -->
+    <header class="bg-white border-b border-slate-200 py-3 px-4 shadow-sm">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <h1 id="gameTitle" class="text-lg font-bold text-slate-700">野球拳じゃんけん</h1>
+            <div class="flex items-center space-x-4">
+                <div id="hpDisplay" class="text-sm font-semibold text-rose-600 bg-rose-50 px-3 py-1 rounded-full border border-rose-200">
+                    HP: <span id="hpValue">♥♥♥</span>
+                </div>
+                <button onclick="resetGame()" class="text-xs bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium px-2.5 py-1.5 rounded transition">
+                    最初から
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- メインコンテンツ領域 -->
+    <main class="max-w-4xl w-full mx-auto p-4 flex-1 flex flex-col justify-center items-center">
+
+        <!-- モード選択画面 (初期状態) -->
+        <div id="modeSelectModal" class="bg-white border border-slate-200 rounded-xl p-6 shadow-md max-w-sm w-full text-center space-y-4 my-auto">
+            <h2 class="text-xl font-bold text-slate-800">難易度を選択</h2>
+            <p class="text-xs text-slate-500">プレイするモードを選んでください。</p>
+            <div class="space-y-3 pt-2">
+                <button onclick="startGame('normal')" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow transition text-sm">
+                    通常モード (HP : 3)
+                </button>
+                <button onclick="startGame('musou')" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg shadow transition text-sm">
+                    無双モード (HP : 無限)
+                </button>
+            </div>
+        </div>
+
+        <!-- プレイ画面 (ゲーム開始後に表示) -->
+        <div id="gamePlayArea" class="w-full flex-1 flex flex-col justify-center hidden">
+            
+            <!-- 上部/中央：画像とセリフの表示エリア -->
+            <!-- PC(md以上): 左に画像、右に縦書きセリフ / スマホ: 上に画像、下に横書きセリフ -->
+            <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 my-auto py-2">
+                
+                <!-- キャラクター画像エリア (左) -->
+                <div class="w-full max-w-[320px] md:max-w-[380px] aspect-[3/4] bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden flex items-center justify-center relative">
+                    <img id="charImage" src="000.png" alt="キャラクター画像" class="w-full h-full object-cover" onerror="handleImageError(this)">
+                </div>
+
+                <!-- セリフ吹き出しエリア (右 / PC時は縦書き) -->
+                <div class="w-full max-w-[320px] md:w-auto md:min-w-[200px] md:h-[400px] bg-white border border-slate-200 rounded-lg p-4 shadow-sm flex flex-col justify-start">
+                    <!-- キャラクター名 -->
+                    <div id="charName" class="text-xs font-bold text-indigo-600 border-b border-indigo-100 pb-1 mb-2 md:mb-0 md:border-b-0 md:border-r md:border-indigo-100 md:pb-0 md:pr-2 md:writing-vertical">
+                        ナビちゃん
+                    </div>
+                    <!-- セリフ本文 (PCで縦書き, スマホで横書き) -->
+                    <div id="dialogueText" class="text-sm md:text-base font-medium text-slate-700 leading-relaxed md:writing-vertical md:h-full pt-1">
+                        じゃんけんで勝負だよ！
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- 下部：じゃんけん操作ボタン -->
+            <div id="actionControls" class="w-full max-w-md mx-auto pt-2 pb-4">
+                <div class="text-center text-xs text-slate-400 mb-2 font-medium">手を選んでね</div>
+                <div class="grid grid-cols-3 gap-3">
+                    <button onclick="playHand('rock')" class="py-3 px-2 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-lg shadow border-b-2 border-rose-700 active:translate-y-0.5 transition flex flex-col items-center">
+                        <span class="text-2xl mb-1">✊</span>
+                        <span class="text-xs">グー</span>
+                    </button>
+                    <button onclick="playHand('scissors')" class="py-3 px-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg shadow border-b-2 border-amber-700 active:translate-y-0.5 transition flex flex-col items-center">
+                        <span class="text-2xl mb-1">✌️</span>
+                        <span class="text-xs">チョキ</span>
+                    </button>
+                    <button onclick="playHand('paper')" class="py-3 px-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-lg shadow border-b-2 border-emerald-700 active:translate-y-0.5 transition flex flex-col items-center">
+                        <span class="text-2xl mb-1">🖐️</span>
+                        <span class="text-xs">パー</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- クリア / ゲームオーバー時の再挑戦ボタン -->
+            <div id="resultControls" class="w-full max-w-xs mx-auto py-4 hidden text-center">
+                <button onclick="resetGame()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow transition text-sm">
+                    もう一度遊ぶ
+                </button>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- フッター -->
+    <footer class="bg-white border-t border-slate-200 py-2 text-center text-xs text-slate-400">
+        &copy; じゃんけんゲーム
+    </footer>
+
+    <!-- ゲームロジック処理 -->
+    <script>
+        // デフォルトのCSVデータ (data.csvが見つからない場合やローカル実行時のフォールバック用)
+        const DEFAULT_CSV_DATA = `image,character,mode,dialogue
+000.png,ナビちゃん,system,じゃんけんで勝負だよ！
+001.png,ヒロイン,game,まだまだこれからだよ！
+002.png,ヒロイン,game,えっ…負けちゃった…？
+003.png,ヒロイン,game,ちょっと恥ずかしいな…
+004.png,ヒロイン,game,もう後がないよ…！
+005.png,ヒロイン,clear,参りました…あなたの勝ちです！
+100.png,ナビちゃん,gameover,ざんねん！ゲームオーバーだよ。`;
+
+        // ゲーム状態変数
+        let gameMode = 'normal'; // 'normal' | 'musou'
+        let currentHp = 3;
+        let currentStage = 0; // 0勝目からスタート
+        let maxStage = 5; // 自動計算またはデフォルト5
+        let csvDatabase = {}; // 画像名をキーとしたデータ辞書
+
+        // 簡易CSVパース関数 (メモ行や不正な行を自動無視する強化版)
+        function parseCSV(csvText) {
+            const lines = csvText.split('\n');
+            const db = {};
+            let headers = null;
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+
+                // ヘッダー行の検出 (image,character などのキーワードが含まれる行)
+                if (!headers && line.includes('image') && line.includes('character')) {
+                    headers = line.split(',').map(h => h.trim());
+                    continue;
+                }
+
+                // ヘッダーが見つかる前のメモ行などはスキップ
+                if (!headers) continue;
+
+                const values = line.split(',').map(v => v.trim());
+                if (values.length < headers.length) continue;
+
+                const row = {};
+                headers.forEach((header, index) => {
+                    row[header] = values[index] || '';
+                });
+
+                // 画像ファイル名が設定されている行のみ登録 (.png または .jpg 等を含み、メモ行を除外)
+                if (row.image && (row.image.endsWith('.png') || row.image.endsWith('.jpg') || row.image.endsWith('.webp'))) {
+                    db[row.image] = row;
+                }
+            }
+            return db;
+        }
+
+        // 外部 data.csv の読み込み（存在しない場合はデフォルトデータを使用）
+        async function loadCSVData() {
+            try {
+                const response = await fetch('data.csv');
+                if (!response.ok) throw new Error('data.csv not found');
+                const text = await response.text();
+                csvDatabase = parseCSV(text);
+            } catch (err) {
+                console.log('ローカルデータまたはデフォルト設定を使用します');
+                csvDatabase = parseCSV(DEFAULT_CSV_DATA);
+            }
+
+            // 最大ステージ数の算出
+            const stageKeys = Object.keys(csvDatabase)
+                .map(k => parseInt(k.replace(/\.(png|jpg|webp)$/i, '')))
+                .filter(n => !isNaN(n) && n < 100);
+
+            if (stageKeys.length > 0) {
+                maxStage = Math.max(...stageKeys);
+            }
+        }
+
+        // ゲーム開始 (モード選択時)
+        function startGame(mode) {
+            gameMode = mode;
+            currentHp = (mode === 'musou') ? Infinity : 3;
+            currentStage = 0;
+
+            document.getElementById('modeSelectModal').classList.add('hidden');
+            document.getElementById('gamePlayArea').classList.remove('hidden');
+            document.getElementById('actionControls').classList.remove('hidden');
+            document.getElementById('resultControls').classList.add('hidden');
+
+            updateUI();
+        }
+
+        // UI表示の更新処理
+        function updateUI() {
+            // HP表示
+            const hpEl = document.getElementById('hpValue');
+            if (gameMode === 'musou') {
+                hpEl.textContent = '無限 (∞)';
+            } else {
+                hpEl.textContent = '♥'.repeat(Math.max(0, currentHp));
+            }
+
+            // 画像名フォーマット（例: 000.png, 001.png ...）
+            let imgFilename = String(currentStage).padStart(3, '0') + '.png';
+            
+            // ゲームオーバー時
+            if (currentHp <= 0 && gameMode !== 'musou') {
+                imgFilename = '100.png';
+            }
+
+            const data = csvDatabase[imgFilename] || {
+                character: 'キャラクター',
+                dialogue: '……'
+            };
+
+            // 画像・セリフのセット
+            const imgEl = document.getElementById('charImage');
+            imgEl.src = imgFilename;
+            
+            document.getElementById('charName').textContent = data.character || 'キャラ';
+            document.getElementById('dialogueText').textContent = data.dialogue || '';
+
+            // 勝敗判定によるコントロールの切り替え
+            if (currentHp <= 0 && gameMode !== 'musou') {
+                document.getElementById('actionControls').classList.add('hidden');
+                document.getElementById('resultControls').classList.remove('hidden');
+            } else if (currentStage >= maxStage) {
+                document.getElementById('actionControls').classList.add('hidden');
+                document.getElementById('resultControls').classList.remove('hidden');
+            }
+        }
+
+        // じゃんけん実行ロジック
+        function playHand(playerHand) {
+            if (currentHp <= 0 || currentStage >= maxStage) return;
+
+            const hands = ['rock', 'scissors', 'paper'];
+            const cpuHand = hands[Math.floor(Math.random() * hands.length)];
+
+            if (playerHand === cpuHand) {
+                // あいこ
+                document.getElementById('dialogueText').textContent = '「あいこで…しょっ！もう一度！」';
+                return;
+            }
+
+            const isWin = (
+                (playerHand === 'rock' && cpuHand === 'scissors') ||
+                (playerHand === 'scissors' && cpuHand === 'paper') ||
+                (playerHand === 'paper' && cpuHand === 'rock')
+            );
+
+            if (isWin) {
+                // 勝利
+                currentStage++;
+                updateUI();
+            } else {
+                // 敗北
+                if (gameMode !== 'musou') {
+                    currentHp--;
+                }
+                if (currentHp <= 0 && gameMode !== 'musou') {
+                    updateUI(); // ゲームオーバー画像へ
+                } else {
+                    document.getElementById('dialogueText').textContent = '「ふふっ、私の勝ち！もう一回勝負だよ！」';
+                    document.getElementById('hpValue').textContent = gameMode === 'musou' ? '無限 (∞)' : '♥'.repeat(Math.max(0, currentHp));
+                }
+            }
+        }
+
+        // 画像が読み込めなかった場合のプレースホルダー処理
+        function handleImageError(img) {
+            img.onerror = null;
+            // 外部画像がない場合でもUIが崩れないようSVGダミーを表示
+            const filename = img.src.split('/').pop();
+            img.src = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="400" viewBox="0 0 300 400"><rect width="100%" height="100%" fill="%23f1f5f9"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="20" fill="%2394a3b8">${filename}</text></svg>`;
+        }
+
+        // リセット処理
+        function resetGame() {
+            document.getElementById('modeSelectModal').classList.remove('hidden');
+            document.getElementById('gamePlayArea').classList.add('hidden');
+        }
+
+        // 初期ロード
+        window.onload = async () => {
+            await loadCSVData();
+        };
+    </script>
+</body>
+</html>
