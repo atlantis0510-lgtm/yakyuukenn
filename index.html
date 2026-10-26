@@ -14,15 +14,15 @@
     main { min-height: 0; }
     #gamePlayArea { min-height: 0; gap: .45rem; }
 
-    /* PC：大きな画像を左に、相手の手→横書きセリフを右に配置 */
+    /* 画像を左に大きく、右側に着用状況、その下寄りに相手の手を配置 */
     #visualRow {
       width: 100%;
-      height: min(64dvh, 600px);
-      min-height: 300px;
+      height: min(59dvh, 570px);
+      min-height: 280px;
       display: grid;
       grid-template-columns: minmax(0, 1.55fr) minmax(220px, .85fr);
-      grid-template-rows: minmax(90px, .42fr) minmax(0, 1fr);
-      gap: .6rem;
+      grid-template-rows: minmax(0, 1fr) auto;
+      gap: .65rem;
       margin: 0 auto;
     }
     #imageFrame {
@@ -46,9 +46,39 @@
       max-width: 100%;
       object-fit: contain;
     }
-    #opponentHandDisplay {
+    #clothingStatus {
       grid-column: 2;
       grid-row: 1;
+      align-self: start;
+      min-width: 0;
+      max-height: 100%;
+      overflow: auto;
+      padding: .7rem .8rem;
+      border: 1px solid #e2e8f0;
+      border-radius: .65rem;
+      background: #fff;
+      box-shadow: 0 1px 3px rgb(15 23 42 / .05);
+      font-size: .84rem;
+      line-height: 1.5;
+      color: #475569;
+    }
+    #clothingStatusLabel {
+      display: block;
+      margin-bottom: .35rem;
+      font-weight: 800;
+      color: #334155;
+    }
+    #clothingStatusItems {
+      list-style: disc;
+      padding-left: 1.2rem;
+      margin: 0;
+    }
+    #clothingStatusItems li { padding: .04rem 0; overflow-wrap: anywhere; }
+    #opponentHandDisplay {
+      grid-column: 2;
+      grid-row: 2;
+      align-self: end;
+      justify-self: stretch;
       min-width: 0;
       display: flex;
       flex-direction: row;
@@ -65,15 +95,18 @@
     #opponentHandLabel { font-size: .78rem; color: #64748b; font-weight: 700; }
     #opponentHandEmoji { font-size: 2rem; line-height: 1.1; }
     #opponentHandName { font-size: .9rem; font-weight: 800; color: #4338ca; }
+
+    /* キャラ名とコメントは画像の下に横書きでまとめる */
     #dialoguePanel {
-      grid-column: 2;
-      grid-row: 2;
+      flex: 0 0 auto;
+      width: 100%;
       min-width: 0;
-      min-height: 0;
-      padding: .85rem;
+      max-height: 125px;
+      min-height: 76px;
+      padding: .65rem .85rem;
       display: flex;
       flex-direction: column;
-      gap: .45rem;
+      gap: .3rem;
       overflow: auto;
       background: #fff;
       border: 1px solid #e2e8f0;
@@ -83,31 +116,19 @@
     #charName {
       flex: 0 0 auto;
       color: #4f46e5;
-      font-size: .78rem;
+      font-size: .8rem;
       font-weight: 800;
-      padding-bottom: .35rem;
+      padding-bottom: .25rem;
       border-bottom: 1px solid #e0e7ff;
     }
     #dialogueText {
       min-width: 0;
       overflow-wrap: anywhere;
       white-space: pre-wrap;
-      font-size: .98rem;
-      line-height: 1.75;
+      font-size: .95rem;
+      line-height: 1.55;
       color: #334155;
     }
-    #clothingStatus {
-      flex: 0 0 auto;
-      width: 100%;
-      padding: .45rem .7rem;
-      border: 1px solid #e2e8f0;
-      border-radius: .55rem;
-      background: #fff;
-      font-size: .82rem;
-      line-height: 1.45;
-      color: #475569;
-    }
-    #clothingStatusLabel { font-weight: 800; color: #334155; margin-right: .3rem; }
     #roundInfo { width: 100%; max-width: 760px; margin: .05rem auto 0; flex: 0 0 auto; }
     #roundResultPanel {
       display: flex;
@@ -139,42 +160,49 @@
       #modeSelectModal { padding: 1.1rem; }
       #modeSelectModal button { text-align: left; padding-left: .9rem; padding-right: .6rem; }
       #gamePlayArea { flex: 1 1 auto; width: 100%; justify-content: flex-start; gap: .3rem; overflow: hidden; }
-      /* スマホでは画像を大きく左に、右に小さな相手の手。下段は横書きセリフ */
+      /* スマホも画像を大きく。右側は着用状況を上、相手の手を下に */
       #visualRow {
         flex: 0 0 auto;
-        height: calc(min(45dvh, 390px) + 60px);
-        max-height: calc(100dvh - 295px);
-        min-height: 175px;
-        grid-template-columns: minmax(0, 1fr) 76px;
+        height: min(47dvh, 385px);
+        max-height: calc(100dvh - 315px);
+        min-height: 180px;
+        grid-template-columns: minmax(0, 1fr) 100px;
         grid-template-rows: minmax(0, 1fr) auto;
         gap: .35rem;
       }
-      #imageFrame { grid-column: 1; grid-row: 1; border-radius: .5rem; }
+      #imageFrame { grid-column: 1; grid-row: 1 / span 2; border-radius: .5rem; }
       #charImage { max-width: 100%; max-height: 100%; }
-      #opponentHandDisplay {
+      #clothingStatus {
         grid-column: 2;
         grid-row: 1;
+        padding: .35rem .4rem;
+        font-size: .7rem;
+        line-height: 1.35;
+        border-radius: .5rem;
+      }
+      #clothingStatusLabel { margin-bottom: .18rem; font-size: .7rem; }
+      #clothingStatusItems { padding-left: 1rem; }
+      #clothingStatusItems li { padding: .025rem 0; }
+      #opponentHandDisplay {
+        grid-column: 2;
+        grid-row: 2;
         flex-direction: column;
-        gap: .2rem;
-        padding: .25rem .15rem;
+        gap: .15rem;
+        padding: .3rem .2rem;
         border-radius: .5rem;
       }
       #opponentHandLabel { font-size: .65rem; line-height: 1.25; }
-      #opponentHandEmoji { font-size: 1.65rem; }
-      #opponentHandName { font-size: .76rem; }
+      #opponentHandEmoji { font-size: 1.55rem; }
+      #opponentHandName { font-size: .75rem; }
       #dialoguePanel {
-        grid-column: 1 / -1;
-        grid-row: 2;
-        max-height: 76px;
-        min-height: 52px;
+        max-height: 92px;
+        min-height: 65px;
         padding: .4rem .55rem;
-        gap: .2rem;
+        gap: .18rem;
         border-radius: .5rem;
-        overflow-y: auto;
       }
-      #charName { font-size: .68rem; padding-bottom: .2rem; }
-      #dialogueText { font-size: .78rem; line-height: 1.45; }
-      #clothingStatus { padding: .3rem .5rem; font-size: .69rem; line-height: 1.35; }
+      #charName { font-size: .7rem; padding-bottom: .15rem; }
+      #dialogueText { font-size: .8rem; line-height: 1.4; }
       #roundInfo { margin-top: 0; }
       #roundResultPanel { gap: .2rem; padding: .45rem .55rem; }
       #roundResultTitle { font-size: .88rem; }
@@ -188,16 +216,19 @@
       #resultControls { padding: .15rem 0 !important; }
     }
     @media (max-width: 360px) {
-      #visualRow { grid-template-columns: minmax(0, 1fr) 68px; height: calc(min(43dvh, 350px) + 58px); }
-      #opponentHandEmoji { font-size: 1.45rem; }
-      #dialoguePanel { max-height: 68px; }
-      #dialogueText { font-size: .74rem; }
+      #visualRow { grid-template-columns: minmax(0, 1fr) 86px; }
+      #clothingStatus { padding: .3rem .3rem; font-size: .67rem; }
+      #clothingStatusLabel { font-size: .67rem; }
+      #opponentHandEmoji { font-size: 1.4rem; }
+      #dialoguePanel { max-height: 88px; }
+      #dialogueText { font-size: .76rem; }
     }
     @media (max-height: 650px) and (max-width: 767px) {
-      #visualRow { height: calc(min(38dvh, 270px) + 54px); max-height: calc(100dvh - 255px); min-height: 195px; }
+      #visualRow { height: min(39dvh, 275px); max-height: calc(100dvh - 270px); min-height: 155px; }
+      #clothingStatus { padding-top: .23rem; padding-bottom: .23rem; }
       #actionControls .hand-btn { padding: .25rem .15rem; }
       #actionControls .hand-emoji { font-size: 1.15rem; }
-      #clothingStatus { padding-top: .23rem; padding-bottom: .23rem; }
+      #dialoguePanel { min-height: 55px; max-height: 76px; }
     }
   </style>
 </head>
@@ -240,20 +271,21 @@
           <img id="charImage" alt="キャラクター画像">
         </div>
 
+        <section id="clothingStatus" aria-live="polite" aria-label="現在の着用状態">
+          <div id="clothingStatusLabel">現在の着用状態</div>
+          <ul id="clothingStatusItems"><li>読み込み中</li></ul>
+        </section>
+
         <div id="opponentHandDisplay" aria-live="polite" aria-label="相手の手">
           <div id="opponentHandLabel">相手の手</div>
           <div id="opponentHandEmoji">？</div>
           <div id="opponentHandName">未公開</div>
         </div>
-
-        <div id="dialoguePanel">
-          <div id="charName">キャラクター</div>
-          <div id="dialogueText"></div>
-        </div>
       </div>
 
-      <div id="clothingStatus" aria-live="polite">
-        <span id="clothingStatusLabel">現在の着用状態：</span><span id="clothingStatusItems">読み込み中</span>
+      <div id="dialoguePanel">
+        <div id="charName">キャラクター</div>
+        <div id="dialogueText"></div>
       </div>
 
       <div id="roundInfo" aria-live="polite">
@@ -447,7 +479,18 @@
 
     function renderClothingStatus() {
       const container = document.getElementById('clothingStatusItems');
-      container.textContent = remainingClothing.length ? remainingClothing.join('、') : '着用しているものはありません';
+      container.replaceChildren();
+      if (remainingClothing.length) {
+        remainingClothing.forEach(item => {
+          const li = document.createElement('li');
+          li.textContent = item;
+          container.appendChild(li);
+        });
+      } else {
+        const li = document.createElement('li');
+        li.textContent = '着用しているものはありません';
+        container.appendChild(li);
+      }
     }
 
     function startGame(mode) {
